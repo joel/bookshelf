@@ -4,7 +4,7 @@ on: [push]
 
 env:
   CI: true
-  RAILS_ENV: test
+  HANAMI_ENV: test
 
 jobs:
 
