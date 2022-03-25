@@ -1,0 +1,55 @@
+name: Tests
+
+on: [push]
+
+env:
+  CI: true
+  RAILS_ENV: test
+
+jobs:
+
+  check:
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      branch: ${{ steps.branch-commits.outputs.branch }}
+      sha: ${{ steps.branch-commits.outputs.sha_short }}
+
+    steps:
+      -
+        name: Check Out Code
+        uses: actions/checkout@v3
+
+      -
+        name: Get Current Branch and Commit
+        id: branch-commits
+        shell: bash
+        run: |
+          echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+          echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+
+      -
+        name: Show Current Branch and Commit
+        run: |
+          echo "Branch: ${{ steps.branch-commits.outputs.branch }}"
+          echo "Sha: ${{ steps.branch-commits.outputs.sha_short }}"
+
+      -
+        name: Setup Ruby 2.7.5
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7.5
+          bundler-cache: true
+
+      -
+        name: Setup configuration
+        run: echo "Nothing here, we are good!"
+
+      -
+        name: Run Tests
+        run: bundle exec rake
+
+      -
+        name: Run Linter
+        run: bundle exec rubocop --parallel
