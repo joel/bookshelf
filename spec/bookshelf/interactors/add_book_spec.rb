@@ -16,8 +16,13 @@ RSpec.describe AddBook do
       expect(result.book.author).to eq("James Baldwin")
     end
 
-    it "persists the Book" do
-      expect(result.book.id).to_not be_nil
+    context "persistence" do
+      let(:repository) { instance_double("BookRepository") }
+
+      it "persists the Book" do
+        expect(repository).to receive(:create)
+        AddBook.new(repository: repository).call(attributes)
+      end
     end
   end
 end
