@@ -1,26 +1,47 @@
 # frozen_string_literal: true
 
 RSpec.describe Web::Controllers::Books::Create, type: :action do
-  let(:action) { described_class.new }
-  let(:params) { Hash[book: { title: "Confident Ruby", author: "Avdi Grimm" }] }
+  let(:action)     { described_class.new }
   let(:repository) { BookRepository.new }
 
-  before do
-    repository.clear
+  before { repository.clear }
+
+  context 'with valid params' do
+    let(:params) { Hash[book: { title: 'Confident Ruby', author: 'Avdi Grimm' }] }
+
+    it 'creates a new book' do
+      expect do
+        action.call(params)
+      end.to change {
+        BookRepository.new.all.size
+      }.by(+1)
+
+      book = repository.last
+      expect(book.title).to eq(params.dig(:book, :title))
+    end
+
+    it 'redirects the user to the books listing' do
+      response = action.call(params)
+
+      expect(response[0]).to eq(302)
+      expect(response[1]['Location']).to eq('/books')
+    end
   end
 
-  it "creates a new book" do
-    expect do
+  context 'with invalid params' do
+    let(:params) { Hash[book: {}] }
+
+    it 'returns HTTP client error' do
+      response = action.call(params)
+      expect(response[0]).to eq(422)
+    end
+
+    it 'dumps errors in params' do
       action.call(params)
-    end.to change {
-      BookRepository.new.all.size
-    }.by(+1)
-  end
+      errors = action.params.errors
 
-  it "redirects the user to the books listing" do
-    response = action.call(params)
-
-    expect(response[0]).to eq(302)
-    expect(response[1]["Location"]).to eq("/books")
+      expect(errors.dig(:book, :title)).to eq(['is missing'])
+      expect(errors.dig(:book, :author)).to eq(['is missing'])
+    end
   end
 end
