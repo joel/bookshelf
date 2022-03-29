@@ -1,23 +1,17 @@
 # frozen_string_literal: true
 
-RSpec.describe Web::Controllers::Books::Create, type: :action do
-  let(:action)     { described_class.new }
-  let(:repository) { BookRepository.new }
+# spec/web/controllers/books/create_spec.rb
 
-  before { repository.clear }
+RSpec.describe Web::Controllers::Books::Create do
+  let(:interactor) { instance_double('AddBook', call: nil) }
+  let(:action) { described_class.new(interactor: interactor) }
 
   context 'with valid params' do
-    let(:params) { Hash[book: { title: 'Confident Ruby', author: 'Avdi Grimm' }] }
+    let(:params) { Hash[book: { title: '1984', author: 'George Orwell' }] }
 
-    it 'creates a new book' do
-      expect do
-        action.call(params)
-      end.to change {
-        BookRepository.new.all.size
-      }.by(+1)
-
-      book = repository.last
-      expect(book.title).to eq(params.dig(:book, :title))
+    it 'calls interactor' do
+      expect(interactor).to receive(:call)
+      action.call(params)
     end
 
     it 'redirects the user to the books listing' do
@@ -31,17 +25,21 @@ RSpec.describe Web::Controllers::Books::Create, type: :action do
   context 'with invalid params' do
     let(:params) { Hash[book: {}] }
 
-    it 'returns HTTP client error' do
+    it 'does not call interactor' do
+      expect(interactor).to_not receive(:call)
+      action.call(params)
+    end
+
+    it 're-renders the books#new view' do
       response = action.call(params)
       expect(response[0]).to eq(422)
     end
 
-    it 'dumps errors in params' do
+    it 'sets errors attribute accordingly' do
       action.call(params)
-      errors = action.params.errors
 
-      expect(errors.dig(:book, :title)).to eq(['is missing'])
-      expect(errors.dig(:book, :author)).to eq(['is missing'])
+      expect(action.params.errors[:book][:title]).to eq(['is missing'])
+      expect(action.params.errors[:book][:author]).to eq(['is missing'])
     end
   end
 end

@@ -8,6 +8,10 @@ module Web
 
         expose :book
 
+        def initialize(interactor: AddBook.new)
+          @interactor = interactor
+        end
+
         params do
           required(:book).schema do
             required(:title).filled(:str?)
@@ -17,7 +21,7 @@ module Web
 
         def call(params)
           if params.valid?
-            @book = AddBook.new.call(params[:book])
+            @book = @interactor.call(params[:book])
 
             redirect_to routes.books_path
           else
