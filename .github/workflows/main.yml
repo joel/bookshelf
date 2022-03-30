@@ -47,6 +47,10 @@ jobs:
         run: echo "Nothing here, we are good!"
 
       -
+        name: Prepare Tests
+        run: HANAMI_ENV=test bundle exec hanami db prepare
+
+      -
         name: Run Tests
         run: bundle exec rake
 
