@@ -52,7 +52,7 @@ jobs:
 
       -
         name: Run Tests
-        run: bundle exec rake
+        run: bundle exec rspec spec
 
       -
         name: Run Linter
